@@ -1,0 +1,47 @@
+
+name: Deploy React Assignments
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build all assignments
+        run: |
+          mkdir -p site
+          for app in my-react-app-p1 my-react-app-p2 my-react-app-p3 my-react-app-p4
+          do
+            cd "$GITHUB_WORKSPACE/$app"
+            npm install
+            npm run build -- --base="/React-Programs/$app/"
+            mkdir -p "$GITHUB_WORKSPACE/site/$app"
+            cp -r dist/. "$GITHUB_WORKSPACE/site/$app/"
+          done
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy
+        uses: actions/deploy-pages@v4
